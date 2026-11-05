@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>RiCKY'S HOMELAB</title>
+    <!-- 字体已自托管：woff2 在 ，声明在下方 @font-face，不再依赖任何外部字体服务 -->
+    <link rel="preload" href="space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      /* ---- self-hosted fonts (latin subsets, variable weight) ---- */
+      @font-face {
+        font-family: "Space Grotesk";
+        font-style: normal;
+        font-weight: 300 700;
+        font-display: swap;
+        src: url("space-grotesk-latin.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "JetBrains Mono";
+        font-style: normal;
+        font-weight: 400 800;
+        font-display: swap;
+        src: url("jetbrains-mono-latin.woff2") format("woff2");
+      }
+      /* ================================================================
+         RiCKY'S HOMELAB — sixth pass, revised: quiet design, put
+         back in.
+         Direction (unslop five lines):
+         Product: the front door to one person's self-hosted services.
+         Character: restrained and precise, in the Linear / Raycast
+           register — the design lives in type, proportion and small
+           exact details, never in concept, scene or decoration.
+         World: an editorial two-column page on warm paper white:
+           a small header row (logo left, clock right) over a
+           hairline, pinned at the top of the page, then a title
+           column on the left and three service cards on the right.
+           On wide screens the two columns sit in the space below
+           the header, centred on each other's midline and nudged
+           slightly above true centre; on narrow screens the page
+           stacks and reads top-down.
+         Moments: open the page, read the title, tap a card.
+         Signature: the red stop after HOMELAB, the 32px red rule
+           under the title, and the square 1/2/3 keycaps. Red appears
+           nowhere else on purpose (press feedback and the reserved
+           offline state aside).
+         Craft notes: max width 1080px, columns 40/60, spacing on a
+         4px grid, card radius 12px with 8px and 6px nested inside,
+         one hairline weight, one easing curve and two durations,
+         hover changes colour only (the arrow's 2px nudge is the
+         single exception), entrance is one faint fade, staggered.
+         ================================================================ */
+      /* ================================================================
+         Eighth pass: dark is now the default and fixed — the page
+         no longer follows the system into light. The dark values
+         below are the prepared graphite scheme, lifted into :root
+         (bg nudged to #131315, --ink-3 raised one step so small
+         grey text still clears 4.5:1 on the dark surfaces).
+         The FULL light palette is preserved intact under
+         [data-theme="light"]: to follow the system again, move
+         those values back into a
+         @media (prefers-color-scheme: light) :root block and set
+         the color-scheme meta back to "light dark". One move.
+         Behind everything sits the network canvas: a faint
+         constellation of neutral-grey nodes and hairline links
+         spread over the left and lower ground, breathing almost
+         imperceptibly, with one dim red node at its heart.
+         ================================================================ */
+      :root {
+        color-scheme: dark;
+        --bg: #131315;
+        --surface: #1c1c1e;
+        --surface-hover: #232326;
+        --surface-glass: rgba(28, 28, 30, 0.55);
+        --surface-glass-hover: rgba(35, 35, 38, 0.61);
+        --surface-glass-quiet: rgba(28, 28, 30, 0.48);
+        --surface-glass-quiet-hover: rgba(28, 28, 30, 0.54);
+        --surface-quiet: #19191b;
+        --tile: #252528;
+        --tile-hover: #2c2a27;
+        --ink: #efefec;
+        --ink-2: #a8a8a2;
+        --ink-3: #8a897f;
+        --line: rgba(239, 239, 236, 0.13);
+        --line-glass: rgba(255, 255, 255, 0.14);
+        --red: #f0333a;
+        --red-ink: #ffffff;
+        --green: #5da87c;
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+        --t-fast: 160ms;
+        --t-enter: 320ms;
+      }
+      /* ---- light palette, preserved whole (see note above) ---- */
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --bg: #fafaf8;
+        --surface: #f3f3f0;
+        --surface-hover: #ededea;
+        --surface-glass: rgba(243, 243, 240, 0.55);
+        --surface-glass-hover: rgba(237, 237, 234, 0.61);
+        --surface-glass-quiet: rgba(243, 243, 240, 0.48);
+        --surface-glass-quiet-hover: rgba(243, 243, 240, 0.54);
+        --surface-quiet: #f6f6f3;
+        --tile: #ebebe8;
+        --tile-hover: #eae6df;
+        --ink: #1c1c1a;
+        --ink-2: #5c5c58;
+        --ink-3: #94938e;
+        --line: rgba(28, 28, 26, 0.12);
+        --line-glass: rgba(28, 28, 26, 0.14);
+        --red: #d71921;
+        --red-ink: #ffffff;
+        --green: #2f7d4f;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", system-ui, -apple-system, "Segoe UI",
+          "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: var(--bg);
+        color: var(--ink);
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      .mono {
+        font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+          Consolas, monospace;
+        font-weight: 400;
+        font-variant-numeric: tabular-nums;
+      }
+      :focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 3px;
+        border-radius: 12px;
+      }
+
+      .wrap {
+        position: relative;
+        z-index: 1;
+        max-width: 1080px;
+        margin: 0 auto;
+        /* no top padding here on purpose: the 24px of air above
+           the header lives in the header's own padding-top (see
+           .topbar), so the sticky header carries it when pinned */
+        padding: 0 32px 48px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+
+      /* ---------- background: the living network, on canvas ----------
+         Eighteenth pass: the grid globe is gone, whole — in its
+         place a fixed full-viewport canvas draws the home network
+         itself. A dozen-odd neutral-grey nodes rest on the open
+         ground of the left column and the lower page, joined by
+         hairlines into one loose net; the whole drawing sits at
+         whisper opacity. Nodes breathe almost imperceptibly and
+         drift at most a couple of pixels — the net must feel
+         planted, not floating. Roughly every two seconds one
+         small packet of light slides along a link to a neighbour
+         and flashes softly out on arrival; never more than two
+         in flight. Exactly one node is red — the NAS, low near
+         the net's heart — in the UI's own red, kept dim. No
+         border, no outline, no clip shape: the net dissolves at
+         its edges by low alpha alone. The header keeps its
+         no-fly zone: no node and no link enters the header row,
+         the hairline, or the 48px of air beneath it (enforced
+         in the layout code, not here). The canvas is fixed and
+         pinned behind everything; the glass cards above it blur
+         the one or two long links that pass beneath them. */
+      #net {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        display: block;
+        pointer-events: none;
+      }
+
+      /* ---------- entrance: one faint fade, small stagger ---------- */
+      @keyframes fade {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      .fade {
+        animation: fade var(--t-enter) var(--ease) both;
+        animation-delay: calc(var(--d, 0) * 60ms);
+      }
+
+      /* ---------- header: logo left, clock right, hairline under ---------- */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--bg);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        /* the header's top margin is its own padding, not the
+           wrap's: sticky pins the border box to top: 0, so air
+           supplied by an ancestor scrolls away and the logo jams
+           against the viewport edge — air inside the box travels
+           with it, and the header looks identical at rest and
+           pinned (its bottom edge, which the canvas no-fly zone
+           measures, does not move) */
+        padding-top: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--line);
+      }
+      #clock {
+        font-size: 13px;
+        line-height: 1;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+
+      /* ---------- layout: title column 40 / cards column 60 ---------- */
+      .layout {
+        flex: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        gap: 80px;
+        align-items: center;
+        align-content: center;
+        margin-top: 64px;
+        /* centring happens above this extra bottom space, so the
+           group rests a few percent of the viewport above centre */
+        padding-bottom: 9vh;
+      }
+
+      /* ---------- left column: title, rule, line ---------- */
+      .side {
+        position: relative;
+        isolation: isolate;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        min-width: 0;
+      }
+      .logo {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        white-space: nowrap;
+      }
+      .logo-mark {
+        flex: none;
+        width: 24px;
+        height: 24px;
+        display: grid;
+        place-items: center;
+        background: var(--ink);
+        color: var(--bg);
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1;
+        border-radius: 6px;
+      }
+      .logo-word {
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        line-height: 1;
+      }
+      .logo-word .stop { color: var(--red); }
+
+      .title {
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.04;
+      }
+      .title .t-small {
+        display: block;
+        font-size: clamp(22px, 2.6vw, 30px);
+        letter-spacing: 0.01em;
+      }
+      .title .t-big {
+        display: block;
+        margin-top: 8px;
+        font-size: clamp(44px, 6vw, 64px);
+        letter-spacing: -0.02em;
+      }
+      .title .stop { color: var(--red); }
+
+      .rule {
+        width: 32px;
+        height: 3px;
+        margin-top: 32px;
+        background: var(--red);
+      }
+      /* the tagline slot now holds a pull-quote: plain
+         typesetting only — no quote marks glyph, no border.
+         The line itself sits a step above body size in the
+         secondary ink with loose leading and wraps left inside
+         the column; the attribution breaks onto its own line,
+         right-aligned, monospaced, one step smaller and a
+         shade quieter, a line of air between the two */
+      .quote {
+        margin: 24px 0 0;
+        width: 100%;
+      }
+      .quote-text {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 1.7;
+        color: var(--ink-2);
+      }
+      .quote-author {
+        margin: 16px 0 0;
+        font-size: 13px;
+        line-height: 1;
+        text-align: right;
+        color: var(--ink-3);
+      }
+
+      /* ---------- right column: three service cards ---------- */
+      .entries {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 16px;
+        min-width: 0;
+      }
+      /* Twelfth pass: the three cards become frosted glass. The
+         surface colour turns translucent and a 16px backdrop
+         blur turns whatever background shows through into a soft
+         smudge, so each card reads as a pane of ground glass.
+         The discipline stays: the same hairline
+         border, no inner highlight, no shadow, no glow, neutral
+         saturation. Hover only nudges the tint's opacity, as
+         before. Where backdrop-filter is unsupported the
+         @supports block below never applies and the cards keep
+         the solid surface colour declared here.
+         Thirteenth pass (unslop audit of the glass): the audit's
+         contrast maths found the one real fault — with the
+         brightest background detail showing through, the muted ink-3
+         text on the quiet NAS card dipped to ~4.0:1. Per the
+         audit rule the fix is a higher opacity floor, never a
+         shadow: both floors rose (0.60 to 0.68 on the live
+         cards, 0.50 to 0.60 on the quiet one) and the hover
+         steps were made equal at +0.06 per tier, where the
+         quiet card used to jump +0.10. The quiet tier also
+         gained a solid fallback colour, so it survives with
+         no backdrop-filter at all instead of vanishing.
+         Fourteenth pass: those floors were also why the glass
+         never read as glass — but the deeper fault was
+         physical, not numerical: the old background sat behind
+         the title column, so the panes had empty graphite behind
+         them and nothing to blur. With background detail now
+         running behind the card column (see the canvas note),
+         the floors drop a full step — live cards 0.68 to
+         0.55, the quiet NAS card 0.60 to 0.48, hover still an
+         even +0.06 per tier — and the blur deepens from 16px
+         to 20px, so fine detail behind a pane melts into soft
+         blobs instead of ghosting through. The
+         hairline becomes a glass edge (--line-glass, white at
+         14%, one step brighter than the page hairline): the
+         pane's edge refraction, and the only brightness it is
+         allowed — no inner highlight, no shadow, no
+         saturation boost. The card text rides on the ink and
+         ink-2 tiers and the 20px blur averages any detail
+         cluster into fog before it reaches the glyphs, so
+         legibility holds at the new floors. */
+      .entry {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 24px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        color: inherit;
+        text-decoration: none;
+        transition: background-color var(--t-fast) var(--ease);
+      }
+      .entry:hover { background: var(--surface-hover); }
+      /* without backdrop-filter the quiet tier still exists, one
+         solid step between the page background and the surface;
+         the glass rules below override both lines when supported */
+      .entry--quiet { background: var(--surface-quiet); }
+      .entry--quiet:hover { background: var(--surface); }
+      @supports (backdrop-filter: blur(1px)) or
+        (-webkit-backdrop-filter: blur(1px)) {
+        .entry {
+          background: var(--surface-glass);
+          border-color: var(--line-glass);
+          -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+        }
+        .entry:hover { background: var(--surface-glass-hover); }
+        .entry--quiet { background: var(--surface-glass-quiet); }
+        .entry--quiet:hover { background: var(--surface-glass-quiet-hover); }
+      }
+
+      .icon-tile {
+        flex: none;
+        width: 40px;
+        height: 40px;
+        display: grid;
+        place-items: center;
+        background: var(--tile);
+        border-radius: 8px;
+        color: var(--ink-2);
+        transition: background-color var(--t-fast) var(--ease);
+      }
+      .entry:hover .icon-tile { background: var(--tile-hover); }
+      .icon-tile svg { display: block; }
+
+      .entry-main {
+        flex: 1;
+        min-width: 0;
+        display: block;
+      }
+      /* nineteenth pass (unslop polish audit): the one fault the
+         audit actually found — the entry names carried -0.01em
+         tracking at 18px. Negative tracking is display-size
+         only (the title's -0.02em at 44–64px stays); body-size
+         text sits at 0. Every other pass came back clean and
+         was left exactly as it was. */
+      .entry-name {
+        display: block;
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: 0;
+        line-height: 1.25;
+      }
+      .entry-desc {
+        display: block;
+        margin-top: 4px;
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 1.45;
+        color: var(--ink-2);
+      }
+
+      .meta {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        line-height: 1;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+      /* the word sits in a fixed-width slot (sized to the longest
+         word, "offline") and aligns left inside it, so the
+         dot, the keycap and the arrow land on the same x in
+         every row */
+      .status-word {
+        display: inline-block;
+        width: 7ch;
+        text-align: left;
+      }
+      .sdot {
+        flex: none;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--ink-3);
+      }
+      .sdot.online { background: var(--green); }
+      .sdot.soon { background: var(--ink-3); }
+      .sdot.offline { background: var(--red); }
+
+      .keycap {
+        width: 26px;
+        height: 26px;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        line-height: 1;
+        color: var(--ink-2);
+        background: transparent;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        transition: background-color var(--t-fast) var(--ease),
+          color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+      }
+      .entry.pressed .keycap {
+        background: var(--red);
+        border-color: transparent;
+        color: var(--red-ink);
+      }
+
+      .arrow {
+        font-size: 16px;
+        line-height: 1;
+        color: var(--ink-3);
+        transition: color var(--t-fast) var(--ease),
+          transform var(--t-fast) var(--ease);
+      }
+      .entry:hover .arrow {
+        color: var(--ink);
+        transform: translateX(2px);
+      }
+      .entry.pressed .arrow { color: var(--red); }
+
+      /* the not-yet-live card sits quieter: one grey step down,
+         reserved until its service ships */
+      .entry--quiet .entry-name { color: var(--ink-2); }
+      .entry--quiet .entry-desc { color: var(--ink-3); }
+      .entry--quiet .status { color: var(--ink-3); }
+      .entry--quiet .icon-tile { color: var(--ink-3); }
+
+      /* ---------- footer: brand line over a built-with line ----------
+         No rule, no background block — the footer stands on
+         spacing alone: 64px of air above it (4px grid) and the
+         wrap's own bottom padding closing the page. Both lines
+         centred across the full content width, stacked. */
+      .page-footer {
+        position: relative;
+        z-index: 1;
+        margin-top: 64px;
+        text-align: center;
+      }
+      .footer-brand {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        line-height: 1;
+        color: var(--ink-2);
+        white-space: nowrap;
+      }
+      .footer-brand svg {
+        display: block;
+        flex: none;
+        color: var(--ink-3);
+      }
+      .footer-built {
+        margin: 8px 0 0;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--ink-3);
+      }
+      .footer-built a {
+        color: var(--ink-2);
+        text-decoration: none;
+        transition: color var(--t-fast) var(--ease);
+      }
+      .footer-built a:hover {
+        color: var(--ink);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+
+      /* ---------- narrow screens: title block stacks above the cards ---------- */
+      @media (max-width: 860px) {
+        /* portrait: the network re-lays itself out for the
+           stacked page in the canvas code — nodes gather in the
+           open ground around the title block and below the
+           cards, and the header no-fly zone still holds */
+        .wrap {
+          padding: 0 20px 48px;
+          /* portrait starts from the top: vertical centring is desktop-only */
+          justify-content: flex-start;
+          min-height: 0;
+        }
+        .layout {
+          flex: none;
+          grid-template-columns: minmax(0, 1fr);
+          /* portrait only: the title block gets one step more air
+             on both sides — margin-top is the gap between the
+             header hairline and the title block, the grid gap is
+             the gap between the title block (below the quote
+             attribution) and the first service card. Desktop
+             values above are untouched. */
+          gap: 56px;
+          margin-top: 56px;
+          padding-bottom: 0;
+          align-content: start;
+        }
+        .entries { justify-content: flex-start; gap: 12px; }
+        /* the wider desktop spacing stops here: portrait keeps
+           the previous, tighter rhythm */
+        .topbar { padding-top: 24px; padding-bottom: 24px; }
+        .entry { padding: 20px; gap: 20px; }
+        .title .t-big { margin-top: 4px; }
+        .rule { margin-top: 24px; }
+        .quote { margin-top: 16px; }
+      }
+      @media (max-width: 640px) {
+        .entry { padding: 16px; gap: 16px; }
+        .entry-name { font-size: 17px; }
+        .entry-desc { font-size: 13px; }
+        .meta { gap: 12px; }
+        .keycap { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-delay: 0ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <canvas id="net" aria-hidden="true"></canvas>
+      <header class="topbar fade" style="--d: 0">
+        <div class="logo">
+          <span class="logo-mark" aria-hidden="true">R</span>
+          <span class="logo-word">HOMELAB<span class="stop">.</span></span>
+        </div>
+        <div id="clock" class="mono">--:--:--</div>
+      </header>
+
+      <div class="layout">
+        <div class="side">
+          <h1 class="title fade" style="--d: 1">
+            <span class="t-small">RiCKY'S</span>
+            <span class="t-big">HOMELAB<span class="stop">.</span></span>
+          </h1>
+          <div class="rule fade" style="--d: 2" aria-hidden="true"></div>
+          <blockquote class="quote fade" style="--d: 2">
+            <p class="quote-text">&ldquo;There is no cloud, it's just someone else's computer.&rdquo;</p>
+            <footer class="quote-author mono">&mdash;&mdash; Chris Watterston</footer>
+          </blockquote>
+        </div>
+
+        <nav class="entries" aria-label="Services">
+          <a class="entry fade" style="--d: 2" href="#" data-service="cde" id="row-cde">
+            <span class="icon-tile" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
+            </span>
+            <span class="entry-main">
+              <span class="entry-name">havoc.env</span>
+              <span class="entry-desc">基于 code-server 的云端开发平台</span>
+            </span>
+            <span class="meta">
+              <span class="status mono"><span class="sdot online" aria-hidden="true"></span><span class="status-word">online</span></span>
+              <span class="keycap mono" aria-hidden="true">1</span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </span>
+          </a>
+
+          <a class="entry fade" style="--d: 3" href="#" data-service="tavern" id="row-tavern">
+            <span class="icon-tile" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+              </svg>
+            </span>
+            <span class="entry-main">
+              <span class="entry-name">SillyTavern</span>
+              <span class="entry-desc">一家深夜营业的故事小馆</span>
+            </span>
+            <span class="meta">
+              <span class="status mono"><span class="sdot online" aria-hidden="true"></span><span class="status-word">online</span></span>
+              <span class="keycap mono" aria-hidden="true">2</span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </span>
+          </a>
+
+          <a class="entry fade" style="--d: 4" href="#" data-service="nas" id="row-nas">
+            <span class="icon-tile" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 12H2" />
+                <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+                <line x1="6" x2="6.01" y1="16" y2="16" />
+                <line x1="10" x2="10.01" y1="16" y2="16" />
+              </svg>
+            </span>
+            <span class="entry-main">
+              <span class="entry-name">nineoneMovies</span>
+              <span class="entry-desc">基于 fnOS 的私有云存储</span>
+            </span>
+            <span class="meta">
+              <span class="status mono"><span class="sdot online" aria-hidden="true"></span><span class="status-word">online</span></span>
+              <span class="keycap mono" aria-hidden="true">3</span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </span>
+          </a>
+
+          <a class="entry fade" style="--d: 5" href="#" data-service="dustland" id="row-dustland">
+            <span class="icon-tile" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12.67 19a2 2 0 0 0 1.416-.588l6.154-6.154a6 6 0 0 0-8.49-8.49L5.596 9.914A2 2 0 0 0 5 11.328V18a1 1 0 0 0 1 1z" />
+                <path d="M16 8 2 22" />
+                <path d="M17.5 15H9" />
+              </svg>
+            </span>
+            <span class="entry-main">
+              <span class="entry-name">Dust Land</span>
+              <span class="entry-desc">基于 Hexo 的静态个人博客</span>
+            </span>
+            <span class="meta">
+              <span class="status mono"><span class="sdot offline" aria-hidden="true"></span><span class="status-word">offline</span></span>
+              <span class="keycap mono" aria-hidden="true">4</span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </span>
+          </a>
+
+          <a class="entry entry--quiet fade" style="--d: 6" href="#" data-service="onelap" id="row-onelap">
+            <span class="icon-tile" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                <path d="M8 16H3v5" />
+              </svg>
+            </span>
+            <span class="entry-main">
+              <span class="entry-name">Onelap Sync</span>
+              <span class="entry-desc">顽鹿运动 to Strava 运动数据同步平台</span>
+            </span>
+            <span class="meta">
+              <span class="status mono"><span class="sdot soon" aria-hidden="true"></span><span class="status-word">soon</span></span>
+              <span class="keycap mono" aria-hidden="true">5</span>
+              <span class="arrow" aria-hidden="true">→</span>
+            </span>
+          </a>
+        </nav>
+      </div>
+
+      <footer class="page-footer fade" style="--d: 7">
+        <div class="footer-brand">
+          <span>RiCKY</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="16 18 22 12 16 6" />
+            <polyline points="8 6 2 12 8 18" />
+          </svg>
+          <span>HOMELAB</span>
+        </div>
+        <p class="footer-built mono">Built with <a href="https://muse.ai" target="_blank" rel="noopener noreferrer">Muse</a></p>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        /* ================================================================
+           LINKS — where each entry actually goes.
+
+           Each address below is live: clicking an entry, pressing
+           Enter on it, or hitting its number key jumps straight
+           there, right after the press feedback lands.
+
+             cde       havoc.env, the cloud dev platform
+             tavern    SillyTavern
+             nas       nineoneMovies, via the NAS public subdomain
+             dustland  Dust Land — offline for now. Empty on
+                       purpose: clicks and the 4 key give press
+                       feedback only. Fill in the address when it
+                       comes back and the row goes live with no
+                       other change.
+             onelap    Onelap Sync — not live yet. Empty on purpose:
+                       clicks and the 5 key give press feedback only.
+                       Fill in the address when it ships and the row
+                       goes live with no other change.
+           ================================================================ */
+        var LINKS = {
+          cde: "https://code.rickylab.icu",
+          tavern: "https://st.rickylab.icu",
+          nas: "https://nas.rickylab.icu",
+          dustland: "",
+          onelap: ""
+        };
+
+        /* ================================================================
+           THE LIVING NETWORK — the background layer, on canvas.
+
+           The page is "three machines, one door", so the background
+           draws the home network itself: a loose constellation of
+           a dozen-odd nodes on the open ground of the left column
+           and the lower page, joined by hairlines into one net.
+           Everything is neutral grey at whisper opacity. Nodes
+           breathe very slowly (alpha only, in a narrow band) and
+           drift at most 2.5px, so the net feels planted. About
+           every two seconds a single packet of light leaves a
+           node, slides at a steady pace along one link to a
+           neighbour, and flashes softly out on arrival — never
+           more than two packets in flight. Exactly one node is
+           red: the one nearest the net's low heart, the NAS, in
+           the UI's own red (#f0333a) kept dim. No border, no
+           outline, no clip — the edges dissolve by alpha alone.
+
+           Layout discipline, measured from the live DOM so it
+           holds at any size: the header row, its hairline and
+           48px beneath it are a no-fly zone — no node is placed
+           there, and links only join placed nodes, so no line
+           enters either (nodes hug the zone from below, links
+           between them run lower still). Desktop: the main
+           cluster fills the title column's ground, a few more
+           nodes sit in the band below the cards, and at most two
+           long links reach from the cluster to that lower band,
+           passing faintly behind the glass cards — no node ever
+           lands behind a card. Portrait: the cluster gathers
+           around the title block and below the stacked cards.
+
+           Driven by requestAnimationFrame, scaled by
+           devicePixelRatio, re-laid-out on resize, paused while
+           the tab is hidden. With prefers-reduced-motion the net
+           is drawn once, static — no packets, no breathing.
+           ================================================================ */
+        var reduceMotion =
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var netCanvas = document.getElementById("net");
+        var netCtx = netCanvas.getContext("2d");
+        var NET_MAX_NODES = 21;
+        var NET_MAX_LINKS = 29;
+        var NET_LINK_DIST = 300; /* links only span local gaps */
+        var NET_PACKET_GAP = 2100; /* ms between packet launches */
+        var NET_PACKET_SPEED = 62; /* px per second, steady */
+        var netNodes = [];
+        var netLinks = [];
+        var netPackets = [];
+        var netFlashes = [];
+        var netW = 0;
+        var netH = 0;
+        var netRaf = 0;
+        var netLastFrame = 0;
+        var netLastLaunch = 0;
+
+        /* small seeded RNG: the same layout every load at a given
+           size, reshuffled only when the window is resized */
+        function netRand(seed) {
+          var s = seed >>> 0;
+          return function () {
+            s = (s + 0x6d2b79f5) >>> 0;
+            var t = s;
+            t = Math.imul(t ^ (t >>> 15), t | 1);
+            t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+          };
+        }
+
+        function netDist(a, b) {
+          var dx = a.x - b.x, dy = a.y - b.y;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function layoutNet() {
+          netNodes = [];
+          netLinks = [];
+          netPackets = [];
+          netFlashes = [];
+          var rand = netRand(20261104);
+          var wrapEl = document.querySelector(".wrap");
+          var topEl = document.querySelector(".topbar");
+          var sideEl = document.querySelector(".side");
+          var entriesEl = document.querySelector(".entries");
+          if (!wrapEl || !topEl || !sideEl || !entriesEl) { return; }
+          var wrap = wrapEl.getBoundingClientRect();
+          var top = topEl.getBoundingClientRect();
+          var side = sideEl.getBoundingClientRect();
+          var entries = entriesEl.getBoundingClientRect();
+          /* the no-fly zone: header row + hairline + 48px of air */
+          var minY = top.bottom + 48 + 10;
+          var vw = window.innerWidth;
+          var vh = window.innerHeight;
+          var portrait = vw <= 860;
+
+          /* scatter zones: [x0, x1, y0, y1, count] in viewport px */
+          var zones = [];
+          if (!portrait) {
+            zones.push([wrap.left + 6, wrap.left + wrap.width * 0.4,
+              minY, vh - 26, 13]);
+            var bandTop = Math.max(entries.bottom + 44, vh * 0.8);
+            if (vh - 18 - bandTop >= 44) {
+              zones.push([wrap.left + wrap.width * 0.05,
+                wrap.left + wrap.width * 0.96, bandTop, vh - 16, 7]);
+            }
+          } else {
+            zones.push([wrap.left + 6, wrap.right - 6,
+              minY, Math.min(side.bottom + 36, vh - 24), 12]);
+            var lowTop = entries.bottom + 34;
+            if (vh - 14 - lowTop >= 44) {
+              zones.push([wrap.left + 6, wrap.right - 6,
+                lowTop, vh - 12, 7]);
+            }
+          }
+
+          var radii = [1.6, 2.3, 3.1];
+          zones.forEach(function (z) {
+            for (var n = 0; n < z[4]; n++) {
+              if (netNodes.length >= NET_MAX_NODES) { return; }
+              var placed = null;
+              for (var tries = 0; tries < 60 && !placed; tries++) {
+                var cand = {
+                  x: z[0] + rand() * Math.max(10, z[1] - z[0]),
+                  y: z[2] + rand() * Math.max(10, z[3] - z[2])
+                };
+                var clear = true;
+                for (var i = 0; i < netNodes.length; i++) {
+                  if (netDist(cand, netNodes[i]) < 52) { clear = false; break; }
+                }
+                if (clear) { placed = cand; }
+              }
+              if (!placed) { placed = cand; }
+              placed.r = radii[Math.floor(rand() * radii.length)];
+              placed.base = 0.1 + rand() * 0.1; /* 0.10 – 0.20 */
+              placed.phase = rand() * Math.PI * 2;
+              placed.driftPhase = rand() * Math.PI * 2;
+              placed.heart = false;
+              netNodes.push(placed);
+            }
+          });
+          if (!netNodes.length) { return; }
+
+          /* the heart: the node nearest the net's low centre is
+             the NAS — the only red thing in the whole drawing */
+          var heartAt = portrait
+            ? { x: vw / 2, y: (minY + side.bottom) / 2 + 30 }
+            : { x: wrap.left + wrap.width * 0.2, y: vh * 0.6 };
+          var heart = netNodes[0], heartD = Infinity;
+          netNodes.forEach(function (node) {
+            var d = netDist(node, heartAt);
+            if (d < heartD) { heartD = d; heart = node; }
+          });
+          heart.heart = true;
+          heart.r = 3.3;
+          heart.base = 0.34;
+
+          /* links: every pair close enough to be neighbours,
+             shortest first, each node capped at degree 3 */
+          var pairs = [];
+          for (var a = 0; a < netNodes.length; a++) {
+            for (var b = a + 1; b < netNodes.length; b++) {
+              var d = netDist(netNodes[a], netNodes[b]);
+              if (d <= NET_LINK_DIST) { pairs.push({ a: a, b: b, d: d }); }
+            }
+          }
+          pairs.sort(function (p, q) { return p.d - q.d; });
+          var degree = netNodes.map(function () { return 0; });
+          var linked = {};
+          function tryLink(p) {
+            var key = p.a + "-" + p.b;
+            if (linked[key]) { return; }
+            if (netLinks.length >= NET_MAX_LINKS) { return; }
+            if (degree[p.a] >= 3 || degree[p.b] >= 3) { return; }
+            linked[key] = true;
+            degree[p.a]++; degree[p.b]++;
+            netLinks.push(p);
+          }
+          pairs.forEach(tryLink);
+          /* no node left stranded: join any orphan to its
+             nearest neighbour even past the degree cap */
+          netNodes.forEach(function (node, i) {
+            if (degree[i] > 0 || netNodes.length < 2) { return; }
+            var best = null, bestD = Infinity;
+            netNodes.forEach(function (other, j) {
+              if (j === i) { return; }
+              var d = netDist(node, other);
+              if (d < bestD) { bestD = d; best = j; }
+            });
+            if (best !== null && netLinks.length < NET_MAX_LINKS) {
+              var p = { a: Math.min(i, best), b: Math.max(i, best), d: bestD };
+              if (!linked[p.a + "-" + p.b]) {
+                linked[p.a + "-" + p.b] = true;
+                degree[p.a]++; degree[p.b]++;
+                netLinks.push(p);
+              }
+            }
+          });
+
+          /* at most two long lines reach across to the lower band
+             behind the cards — faint threads for the glass to blur */
+          if (!portrait && zones.length > 1) {
+            var bandY = zones[1][2];
+            var cross = netNodes.filter(function (node) {
+              return node.y >= bandY && node.x > entries.left + 30;
+            }).slice(0, 2);
+            cross.forEach(function (node) {
+              if (netLinks.length >= NET_MAX_LINKS) { return; }
+              var bi = netNodes.indexOf(node);
+              var best = -1, bestD = Infinity;
+              netNodes.forEach(function (other, j) {
+                if (other.y >= bandY) { return; }
+                var d = netDist(node, other);
+                if (d < bestD) { bestD = d; best = j; }
+              });
+              if (best >= 0) {
+                var p = { a: Math.min(bi, best), b: Math.max(bi, best), d: bestD };
+                if (!linked[p.a + "-" + p.b]) {
+                  linked[p.a + "-" + p.b] = true;
+                  netLinks.push(p);
+                }
+              }
+            });
+          }
+        }
+
+        function sizeNet() {
+          var dpr = Math.min(window.devicePixelRatio || 1, 2);
+          netW = window.innerWidth;
+          netH = window.innerHeight;
+          netCanvas.width = Math.round(netW * dpr);
+          netCanvas.height = Math.round(netH * dpr);
+          netCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        /* a node's on-screen spot at time t: home plus a drift of
+           at most 2.5px on slow, mismatched periods */
+        function netPos(node, t, still) {
+          if (still) { return { x: node.x, y: node.y }; }
+          return {
+            x: node.x + 2.5 * Math.sin(t * 0.00011 + node.driftPhase),
+            y: node.y + 2.5 * Math.cos(t * 0.00009 + node.driftPhase * 1.7)
+          };
+        }
+
+        function drawNet(t, still) {
+          netCtx.clearRect(0, 0, netW, netH);
+          var pos = netNodes.map(function (node) { return netPos(node, t, still); });
+          /* hairline links, neutral grey, barely there */
+          netCtx.lineWidth = 1;
+          netCtx.strokeStyle = "rgba(168, 168, 162, 0.07)";
+          netCtx.beginPath();
+          netLinks.forEach(function (link) {
+            netCtx.moveTo(pos[link.a].x, pos[link.a].y);
+            netCtx.lineTo(pos[link.b].x, pos[link.b].y);
+          });
+          netCtx.stroke();
+          /* packets in flight: one small point of light per link */
+          netPackets.forEach(function (pk) {
+            var a = pos[pk.from], b = pos[pk.to];
+            var x = a.x + (b.x - a.x) * pk.p;
+            var y = a.y + (b.y - a.y) * pk.p;
+            var fade = Math.min(1, pk.p * 5, (1 - pk.p) * 5);
+            netCtx.beginPath();
+            netCtx.arc(x, y, 1.8, 0, Math.PI * 2);
+            netCtx.fillStyle = "rgba(232, 232, 226, " + (0.5 * fade).toFixed(3) + ")";
+            netCtx.fill();
+          });
+          /* arrival flashes: a soft ring breathing out and gone */
+          netFlashes.forEach(function (fl) {
+            var k = (t - fl.start) / 650;
+            if (k < 0 || k > 1) { return; }
+            var node = netNodes[fl.node];
+            var p = pos[fl.node];
+            netCtx.beginPath();
+            netCtx.arc(p.x, p.y, node.r + 2 + k * 7, 0, Math.PI * 2);
+            netCtx.strokeStyle = node.heart
+              ? "rgba(240, 51, 58, " + (0.3 * (1 - k)).toFixed(3) + ")"
+              : "rgba(210, 210, 204, " + (0.26 * (1 - k)).toFixed(3) + ")";
+            netCtx.lineWidth = 1;
+            netCtx.stroke();
+          });
+          /* nodes: solid dots in three sizes, breathing so slowly
+             you have to stare to catch it */
+          netNodes.forEach(function (node, i) {
+            var breathe = still
+              ? 1
+              : 0.78 + 0.22 * Math.sin(t * 0.00021 + node.phase);
+            var alpha = node.base * breathe;
+            netCtx.beginPath();
+            netCtx.arc(pos[i].x, pos[i].y, node.r, 0, Math.PI * 2);
+            netCtx.fillStyle = node.heart
+              ? "rgba(240, 51, 58, " + alpha.toFixed(3) + ")"
+              : "rgba(168, 168, 162, " + alpha.toFixed(3) + ")";
+            netCtx.fill();
+          });
+        }
+
+        function netFrame(t) {
+          netRaf = requestAnimationFrame(netFrame);
+          var dt = Math.min(100, t - netLastFrame);
+          netLastFrame = t;
+          /* launch a packet about every two seconds, at most
+             two in flight at once */
+          if (
+            netLinks.length &&
+            netPackets.length < 2 &&
+            t - netLastLaunch >= NET_PACKET_GAP
+          ) {
+            netLastLaunch = t;
+            var link = netLinks[Math.floor(Math.random() * netLinks.length)];
+            var flip = Math.random() < 0.5;
+            netPackets.push({
+              from: flip ? link.b : link.a,
+              to: flip ? link.a : link.b,
+              p: 0,
+              dur: Math.max(700, (link.d / NET_PACKET_SPEED) * 1000)
+            });
+          }
+          netPackets = netPackets.filter(function (pk) {
+            pk.p += dt / pk.dur;
+            if (pk.p >= 1) {
+              netFlashes.push({ node: pk.to, start: t });
+              return false;
+            }
+            return true;
+          });
+          netFlashes = netFlashes.filter(function (fl) {
+            return t - fl.start <= 650;
+          });
+          drawNet(t, false);
+        }
+
+        function startNet() {
+          cancelAnimationFrame(netRaf);
+          if (reduceMotion) {
+            drawNet(0, true); /* one static net, nothing moves */
+            return;
+          }
+          netLastFrame = performance.now();
+          netLastLaunch = netLastFrame - NET_PACKET_GAP + 1200;
+          netRaf = requestAnimationFrame(netFrame);
+        }
+
+        function rebuildNet() {
+          sizeNet();
+          layoutNet();
+          startNet();
+        }
+
+        rebuildNet();
+        /* fonts settling can shift the columns a few px — re-lay
+           once everything has landed, so zones hug the real DOM */
+        window.addEventListener("load", rebuildNet);
+        var netResizeTimer = 0;
+        window.addEventListener("resize", function () {
+          clearTimeout(netResizeTimer);
+          netResizeTimer = setTimeout(rebuildNet, 160);
+        });
+        document.addEventListener("visibilitychange", function () {
+          if (reduceMotion) { return; }
+          if (document.hidden) {
+            cancelAnimationFrame(netRaf);
+          } else {
+            netLastFrame = performance.now();
+            netRaf = requestAnimationFrame(netFrame);
+          }
+        });
+
+        /* ---- local clock, monospace tabular figures ----
+           it walks on its own now; the network runs on
+           requestAnimationFrame and answers to no tick */
+        var clock = document.getElementById("clock");
+        function pad(n) { return (n < 10 ? "0" : "") + n; }
+        function tick() {
+          var d = new Date();
+          clock.textContent =
+            pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+        }
+        tick();
+        setInterval(tick, 1000);
+
+        /* ---- entries: click, Enter and number keys ---- */
+        var rows = {
+          cde: document.getElementById("row-cde"),
+          tavern: document.getElementById("row-tavern"),
+          nas: document.getElementById("row-nas"),
+          dustland: document.getElementById("row-dustland"),
+          onelap: document.getElementById("row-onelap")
+        };
+        var KEYS = { "1": "cde", "2": "tavern", "3": "nas", "4": "dustland", "5": "onelap" };
+        var PRESS_MS = 200;
+
+        Object.keys(rows).forEach(function (name) {
+          var row = rows[name];
+          if (LINKS[name]) {
+            row.setAttribute("href", LINKS[name]);
+          } else {
+            row.setAttribute("aria-disabled", "true");
+          }
+          row.addEventListener("click", function (e) {
+            e.preventDefault();
+            activate(name);
+          });
+        });
+
+        function activate(name) {
+          var row = rows[name];
+          if (!row) { return; }
+          row.classList.add("pressed");
+          setTimeout(function () { row.classList.remove("pressed"); }, PRESS_MS);
+          var target = LINKS[name];
+          if (target) {
+            /* let the press feedback land before the jump */
+            setTimeout(function () { window.location.assign(target); }, 160);
+          }
+        }
+
+        document.addEventListener("keydown", function (e) {
+          if (e.metaKey || e.ctrlKey || e.altKey) { return; }
+          var name = KEYS[e.key];
+          if (name) { activate(name); }
+        });
+      })();
+    </script>
+  </body>
+</html>
